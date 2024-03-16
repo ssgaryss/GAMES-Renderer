@@ -16,20 +16,21 @@ find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
 set(TS_FILES GAMES-Renderer_zh_CN.ts)
 
 set(PROJECT_SOURCES
-        main.cpp
+        mainwindow.ui
         mainwindow.cpp
         mainwindow.h
-        mainwindow.ui
+        main.cpp
         ${TS_FILES}
 )
+
+include_directories(${PROJECT_SOURCE_DIR}/include)
+file(GLOB_RECURSE srcs CONFIGURE_DEPENDS src/*.cpp include/*.h)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(GAMES-Renderer
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        cscene.h cscene.cpp
-        csceneview.h csceneview.cpp
-        ccamera.h ccamera.cpp
+        ${srcs}
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET GAMES-Renderer APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -41,17 +42,20 @@ else()
     if(ANDROID)
         add_library(GAMES-Renderer SHARED
             ${PROJECT_SOURCES}
+            ${srcs}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(GAMES-Renderer
             ${PROJECT_SOURCES}
+            ${srcs}
         )
     endif()
 
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
+
 
 target_link_libraries(GAMES-Renderer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(GAMES-Renderer PRIVATE Qt6::OpenGLWidgets)

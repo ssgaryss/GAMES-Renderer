@@ -32,10 +32,10 @@ QMenuBar{
    <widget class="CSceneView" name="openGLWidget">
     <property name="geometry">
      <rect>
-      <x>130</x>
-      <y>80</y>
-      <width>571</width>
-      <height>431</height>
+      <x>70</x>
+      <y>40</y>
+      <width>681</width>
+      <height>491</height>
      </rect>
     </property>
    </widget>
@@ -68,7 +68,7 @@ QMenuBar{
   <customwidget>
    <class>CSceneView</class>
    <extends>QOpenGLWidget</extends>
-   <header>csceneview.h</header>
+   <header>engine/csceneview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
