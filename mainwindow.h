@@ -1,7 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QWidget>
 #include <QMainWindow>
+#include <QKeyEvent>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -16,11 +18,13 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+private:
+    Ui::MainWindow *ui;
+    void __connectAll(); //连接信号与槽函数
 
 private slots:
     void on_pushButton_clicked();
-
-private:
-    Ui::MainWindow *ui;
+signals:
+    void keySignal(QKeyEvent *vEvent);
 };
 #endif // MAINWINDOW_H

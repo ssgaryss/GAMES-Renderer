@@ -9,9 +9,15 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools)
 find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
+find_package(GLM REQUIRED)
+message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
+find_package(ASSIMP REQUIRED)
+message(STATUS "Found ASSIMP in ${ASSIMP_INCLUDE_DIR}")
 
 set(TS_FILES GAMES-Renderer_zh_CN.ts)
 
@@ -23,8 +29,15 @@ set(PROJECT_SOURCES
         ${TS_FILES}
 )
 
+include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/include)
-file(GLOB_RECURSE srcs CONFIGURE_DEPENDS src/*.cpp include/*.h)
+link_directories(${PROJECT_SOURCE_DIR}/lib)
+link_directories(${PROJECT_SOURCE_DIR}/dlls)
+file(GLOB_RECURSE srcs CONFIGURE_DEPENDS
+    src/*.cpp
+    src/*.vs
+    src/*.fs
+    include/*.h)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(GAMES-Renderer
@@ -59,6 +72,7 @@ endif()
 
 target_link_libraries(GAMES-Renderer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(GAMES-Renderer PRIVATE Qt6::OpenGLWidgets)
+target_link_libraries(GAMES-Renderer PRIVATE ASSIMP)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
