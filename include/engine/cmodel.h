@@ -17,9 +17,11 @@
 class CModel : public CGameObject
 {
 public:
-    CModel(std::string const& vPath, bool vGamma = false);
+    CModel();
+    explicit CModel(std::string const& vPath, bool vGamma = false);
     ~CModel();
     virtual void drawV(CShader& vShader) override;
+    void reload(std::string const& vPath);
 
 private:
     std::vector<CMesh> m_Meshes;

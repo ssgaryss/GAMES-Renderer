@@ -5,10 +5,13 @@
 #include <QWidget>
 #include <QOpenGLWidget>
 #include <QKeyEvent>
+#include <QElapsedTimer>
+#include <QLabel>>
 
 #include <engine/cshader.h>
 #include <engine/ccamera.h>
 #include <engine/cscene.h>
+#include <engine/cmodel.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -34,13 +37,20 @@ public:
     virtual void resizeGL(int w, int h) override;
     virtual void paintGL() override;
 protected:
+    virtual void mouseMoveEvent(QMouseEvent *vEvent) override;
     virtual void keyPressEvent(QKeyEvent *vEvent) override;
     virtual void keyReleaseEvent(QKeyEvent *vEvent) override;
 private:
     // QOpenGLContext *m_Context;
+    QLabel m_FPSLabel;
+    QElapsedTimer m_FrameTimer; //计时器（上一帧开始计时）
+    float m_FPS = 0.0f; //fps
+    QPoint m_lastFrameMousePos; //鼠标上一帧所在位置
+
     CShader m_SceneViewShader; //渲染该视图的渲染器
     CCamera m_SceneViewCamera;
     float m_MovementSpeed = 2.5f; //移动速度
+    bool allowShake = false; //须按住ctrl键才能开启鼠标视角转换
     float m_MouseSensitivity = 0.1f; //灵敏度
 
     void __draw(CShader vShader); //绘制出当前视点的画面

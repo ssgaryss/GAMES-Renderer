@@ -1,6 +1,10 @@
 #include <engine/cmodel.h>
 
 //public
+CModel::CModel()
+{
+}
+
 CModel::CModel(std::string const& vPath, bool vGamma)
     : m_GammaCorrection{ vGamma }
 {
@@ -17,6 +21,11 @@ void CModel::drawV(CShader& vShader)
     {
         m_Meshes[i].draw(vShader);
     }
+}
+
+void CModel::reload(const std::string &vPath)
+{
+    __loadModel(vPath);
 }
 
 //private

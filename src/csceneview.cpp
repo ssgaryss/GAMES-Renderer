@@ -3,7 +3,7 @@
 
 
 CSceneView::CSceneView(QWidget *parent)
-    : QOpenGLWidget{parent}
+    : QOpenGLWidget{parent}, m_FPSLabel{this}
 {
 }
 
@@ -15,8 +15,8 @@ CSceneView::CSceneView(const CSceneView &vSceneView)
 void CSceneView::initializeGL()
 {
     initializeOpenGLFunctions();
-    CModel vModel("D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/resources/objects/mary/Marry.obj");
-    this->loadGameObject(vModel);
+    Ass.reload("D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/resources/objects/mary/Marry.obj");
+    m_FrameTimer.start();
 }
 
 void CSceneView::resizeGL(int w, int h)
@@ -26,6 +26,10 @@ void CSceneView::resizeGL(int w, int h)
 
 void CSceneView::paintGL()
 {
+    m_FPS = 1000.0f / m_FrameTimer.elapsed();
+    m_FrameTimer.restart();
+    m_FPSLabel.setText(QString("FPS: %1").arg(QString::number(m_FPS, 'f', 2)));
+    glEnable(GL_DEPTH_TEST);
     CShader vShader("D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/src/shaders/model.vs",
                     "D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/src/shaders/model.fs");
     // CModel vModel("D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/resources/objects/mary/Marry.obj"); //这个模型贴图已经翻转过了
@@ -40,15 +44,24 @@ void CSceneView::paintGL()
     vShader.setUniformMat4("projection", Projection);
     vShader.setUniformMat4("view", View);
     vShader.setUniformMat4("model", Model);
-    // vModel._drawV(vShader);
+    Ass.drawV(vShader);
     // __draw(vShader);
     update();
 }
 
+void CSceneView::mouseMoveEvent(QMouseEvent *vEvent)
+{
+    QPoint CurrentPos = vEvent->pos();
+    float XOffset = CurrentPos.x() - m_lastFrameMousePos.x();
+    float YOffset = m_lastFrameMousePos.y() - CurrentPos.y(); // reversed since y-coordinates go from bottom to top
+    m_lastFrameMousePos = CurrentPos;
+    if(allowShake){
+        __shakeSceneView(XOffset, YOffset, true);
+    }
+}
+
 void CSceneView::keyPressEvent(QKeyEvent *vEvent)
 {
-    qDebug() << "press";
-    qDebug() << "position:" << m_SceneViewCamera.getPosition().x;
     if(vEvent->key() == Qt::Key_W){
         __moveSceneView(FORWARD);
     }
@@ -63,11 +76,25 @@ void CSceneView::keyPressEvent(QKeyEvent *vEvent)
     {
         __moveSceneView(RIGHT);
     }
+    else if(vEvent->key() == Qt::Key_Q)
+    {
+        __moveSceneView(UP);
+    }
+    else if(vEvent->key() == Qt::Key_E)
+    {
+        __moveSceneView(DOWN);
+    }
+
+    if(vEvent->key() == Qt::Key_Control){
+        allowShake = true;
+    }
 }
 
 void CSceneView::keyReleaseEvent(QKeyEvent *vEvent)
 {
-    // qDebug() << "press";
+    if(vEvent->key() == Qt::Key_Control){
+        allowShake = false;
+    }
 }
 
 void CSceneView::__draw(CShader vShader)
@@ -116,9 +143,8 @@ void CSceneView::__zoomSceneView(float vYOffset)
 
 void CSceneView::__moveSceneView(ESceneViewMovement vDirection)
 {
-    // float DeltaTime = 1.0f / m_FPS;
-    // float Velocity = m_MovementSpeed * DeltaTime;
-    float Velocity = 1.0f;
+    float DeltaTime = 1.0f / m_FPS;
+    float Velocity = m_MovementSpeed * DeltaTime;
     glm::vec3 Position = m_SceneViewCamera.getPosition();
     glm::vec3 Front = m_SceneViewCamera.getFront();
     glm::vec3 Up = m_SceneViewCamera.getUp();
@@ -138,6 +164,14 @@ void CSceneView::__moveSceneView(ESceneViewMovement vDirection)
     else if (vDirection == RIGHT)
     {
         Position += Right * Velocity;
+    }
+    else if (vDirection == UP)
+    {
+        Position += Up * Velocity;
+    }
+    else if (vDirection == DOWN)
+    {
+        Position -= Up * Velocity;
     }
     m_SceneViewCamera.setPosition(Position);
 }
