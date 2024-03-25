@@ -9,7 +9,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
 
-#include <engine/cmesh.h>
 #include <engine/cgameobject.h>
 #include <vector>
 #include <string>
@@ -20,13 +19,9 @@ public:
     CModel();
     explicit CModel(std::string const& vPath, bool vGamma = false);
     ~CModel();
-    virtual void drawV(CShader& vShader) override;
     void reload(std::string const& vPath);
 
 private:
-    std::vector<CMesh> m_Meshes;
-    std::vector<STexture> m_LoadedTextures;
-    std::string m_Directory; //文件目录
     bool m_GammaCorrection;
 
     void __loadModel(std::string const& vPath);

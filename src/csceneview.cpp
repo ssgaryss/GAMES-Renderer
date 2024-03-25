@@ -7,15 +7,22 @@ CSceneView::CSceneView(QWidget *parent)
 {
 }
 
-CSceneView::CSceneView(const CSceneView &vSceneView)
-    : m_SceneViewShader{vSceneView.m_SceneViewShader}, m_SceneViewCamera{vSceneView.m_SceneViewCamera}
-{
-}
+// CSceneView::CSceneView(const CSceneView &vSceneView)
+//     : m_SceneViewShaders{vSceneView.m_SceneViewShaders}, m_SceneViewCamera{vSceneView.m_SceneViewCamera}
+// {
+// }
 
 void CSceneView::initializeGL()
 {
     initializeOpenGLFunctions();
-    Ass.reload("D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/resources/objects/mary/Marry.obj");
+    CModel a("D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/resources/objects/bunny/bunny.obj");
+    CModel b("D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/resources/objects/mary/Marry.obj");
+    CModel c("D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/resources/objects/base_objects/plane/plane.obj");
+    this->loadGameObject(a);
+    this->loadGameObject(b);
+    this->loadGameObject(c);
+    m_SceneViewShader.reload("D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/src/shaders/model.vs",
+                             "D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/src/shaders/model.fs");
     m_FrameTimer.start();
 }
 
@@ -30,23 +37,38 @@ void CSceneView::paintGL()
     m_FrameTimer.restart();
     m_FPSLabel.setText(QString("FPS: %1").arg(QString::number(m_FPS, 'f', 2)));
     glEnable(GL_DEPTH_TEST);
-    CShader vShader("D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/src/shaders/model.vs",
-                    "D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/src/shaders/model.fs");
-    // CModel vModel("D:/Master_Learning_Qiuhuidi/CG/GAMES-Renderer/GAMES-Renderer/resources/objects/mary/Marry.obj"); //这个模型贴图已经翻转过了
-    vShader.use();
+
+    m_SceneViewShader.use();
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glm::mat4 Projection = __getProjectionMatrix();
-    glm::mat4 View = m_SceneViewCamera.getViewMatrix();
-    ///////////////////////////////////////////
-    glm::mat4 Model = glm::mat4(1.0f); //暂时如此
-    vShader.setUniformMat4("projection", Projection);
-    vShader.setUniformMat4("view", View);
-    vShader.setUniformMat4("model", Model);
-    Ass.drawV(vShader);
-    // __draw(vShader);
+    m_GameObjects.at(0).setPosition(glm::vec3{-0.5f, -0.3f, 0.0f});
+    m_GameObjects.at(1).setPosition(glm::vec3{0.0f, -0.3f, 0.0f});
+    m_GameObjects.at(2).setPosition(glm::vec3{0.0f, -0.3f, 0.0f});
+    m_GameObjects.at(1).setScale(glm::vec3{0.2f, 0.2f, 0.2f});
+    __draw();
     update();
+}
+
+void CSceneView::loadShader(const char *vVertexShaderPath, const char *vFragmentShaderPath, EMaterial vMaterial)
+{
+    for(std::vector<CShader>::iterator it = m_SceneViewShaders.begin(); it < m_SceneViewShaders.end(); ++it){
+        if(it->getTarget() == vMaterial){
+            std::cout << "ERROR::SCENE_VIEW::SHADER_ALREADY_EXISTS: \n" << std::endl;
+            return;
+        }
+    }
+    CShader Shader(vVertexShaderPath, vFragmentShaderPath, vMaterial);
+    m_SceneViewShaders.push_back(Shader);
+}
+
+CShader CSceneView::selectShader(EMaterial vTarget)
+{
+    for(std::vector<CShader>::iterator it = m_SceneViewShaders.begin(); it < m_SceneViewShaders.end(); ++it){
+        if(it->getTarget() == vTarget){
+            return *it;
+        }
+    }
+    std::cout << "ERROR::SCENE_VIEW::SHADER_NOT_EXISTS: \n" << std::endl;
 }
 
 void CSceneView::mouseMoveEvent(QMouseEvent *vEvent)
@@ -85,22 +107,28 @@ void CSceneView::keyPressEvent(QKeyEvent *vEvent)
         __moveSceneView(DOWN);
     }
 
-    if(vEvent->key() == Qt::Key_Control){
-        allowShake = true;
+    if(vEvent->key() == Qt::Key_Alt && Qt::AltModifier){
+            allowShake = true;
     }
 }
 
 void CSceneView::keyReleaseEvent(QKeyEvent *vEvent)
 {
-    if(vEvent->key() == Qt::Key_Control){
+    if(vEvent->key() == Qt::Key_Alt){
         allowShake = false;
     }
 }
 
-void CSceneView::__draw(CShader vShader)
+void CSceneView::__draw()
 {
+    glm::mat4 Projection = __getProjectionMatrix();
+    glm::mat4 View = m_SceneViewCamera.getViewMatrix();
+    m_SceneViewShader.setUniformMat4("projection", Projection);
+    m_SceneViewShader.setUniformMat4("view", View);
     for(std::vector<CGameObject>::iterator it = m_GameObjects.begin(); it != m_GameObjects.end(); ++it){
-        it->drawV(vShader);
+        glm::mat4 Model = it->getModelMatrix();
+        m_SceneViewShader.setUniformMat4("model", Model);
+        it->drawV(m_SceneViewShader);
     }
 }
 

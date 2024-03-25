@@ -15,6 +15,12 @@ CShader::CShader(const char *vVertexShaderPath, const char *vFragmentShaderPath)
     __createProgram();
 }
 
+CShader::CShader(const char *vVertexShaderPath, const char *vFragmentShaderPath, EMaterial vMaterial)
+    :CShader{vVertexShaderPath, vFragmentShaderPath}
+{
+    m_Target = vMaterial;
+}
+
 CShader::CShader(const CShader &vShader):
     m_ID{vShader.m_ID},m_VertexShaderPath{vShader.m_VertexShaderPath},m_VertexShaderCode{vShader.m_VertexShaderCode},
     m_FragmentShaderPath{vShader.m_FragmentShaderPath},m_FragmentShaderCode{vShader.m_FragmentShaderCode}
@@ -29,6 +35,17 @@ CShader::~CShader()
 void CShader::use()
 {
     glUseProgram(this->m_ID);
+}
+
+void CShader::reload(const char *vVertexShaderPath, const char *vFragmentShaderPath)
+{
+    initializeOpenGLFunctions();
+    this->m_VertexShaderPath = vVertexShaderPath;
+    this->m_FragmentShaderPath = vFragmentShaderPath;
+    __getShaderSource(vVertexShaderPath, VERTEX_SHADER);
+    __getShaderSource(vFragmentShaderPath, FRAGMENT_SHADER);
+
+    __createProgram();
 }
 
 void CShader::setUniformInt(const std::string& vName, int& vValue)
@@ -49,6 +66,11 @@ void CShader::setUniformFloat(const std::string& vName, float& vValue)
 void CShader::setUniformMat4(const std::string& vName, glm::mat4& vValue)
 {
     glUniformMatrix4fv(glGetUniformLocation(this->m_ID, vName.c_str()), 1, GL_FALSE, &vValue[0][0]);
+}
+
+EMaterial CShader::getTarget()
+{
+    return m_Target;
 }
 
 void CShader::__createProgram()

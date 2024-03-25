@@ -6,8 +6,16 @@ CGameObject::CGameObject(glm::vec3 vPosition, glm::vec3 vRotation, glm::vec3 vSc
 {
 }
 
+CGameObject::CGameObject(glm::vec3 vPosition, glm::vec3 vRotation, glm::vec3 vScale, EMaterial vMaterial)
+    :CGameObject{vPosition, vRotation, vScale}
+{
+    m_Material = vMaterial;
+}
+
 CGameObject::CGameObject(const CGameObject &vGameObject)
-    :m_Position{vGameObject.m_Position}, m_Rotation{vGameObject.m_Rotation}, m_Scale{vGameObject.m_Scale}
+    :m_Position{vGameObject.m_Position}, m_Rotation{vGameObject.m_Rotation}, m_Scale{vGameObject.m_Scale},
+    m_Meshes{vGameObject.m_Meshes}, m_LoadedTextures{vGameObject.m_LoadedTextures}, m_Directory{vGameObject.m_Directory},
+    m_Material{vGameObject.m_Material}
 {
 }
 
@@ -17,15 +25,35 @@ CGameObject::~CGameObject()
 
 void CGameObject::drawV(CShader& vShader)
 {
+    for (unsigned int i = 0; i < m_Meshes.size(); i++)
+    {
+        m_Meshes[i].draw(vShader);
+    }
 }
 
 glm::mat4 CGameObject::getModelMatrix() const
 {
     glm::mat4 voTransform(1.0f);
     voTransform = glm::translate(voTransform, m_Position);
-    //voTransform = glm::rotate(voTransform, m_Position);
+    // voTransform = glm::rotate(voTransform, m_Rotation);
+    voTransform = glm::scale(voTransform, m_Scale);
     return voTransform;
 
+}
+
+void CGameObject::setPosition(glm::vec3 vPosition)
+{
+    m_Position = vPosition;
+}
+
+void CGameObject::setScale(glm::vec3 vScale)
+{
+    m_Scale = vScale;
+}
+
+void CGameObject::setMaterial(EMaterial vMaterial)
+{
+    m_Material = vMaterial;
 }
 
 //protected
@@ -64,6 +92,7 @@ unsigned int CGameObject::_generateTextureIDV(const char* vPath, const std::stri
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         stbi_image_free(Data);
+        glBindTexture(GL_TEXTURE_2D, voTextureID);
     }
     else
     {

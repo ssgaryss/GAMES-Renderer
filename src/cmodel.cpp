@@ -15,14 +15,6 @@ CModel::~CModel()
 {
 }
 
-void CModel::drawV(CShader& vShader)
-{
-    for (unsigned int i = 0; i < m_Meshes.size(); i++)
-    {
-        m_Meshes[i].draw(vShader);
-    }
-}
-
 void CModel::reload(const std::string &vPath)
 {
     __loadModel(vPath);
